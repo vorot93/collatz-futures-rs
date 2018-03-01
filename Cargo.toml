@@ -1,0 +1,6 @@
+[package]
+name = "collatz-futures-rs"
+version = "0.1.0"
+
+[dependencies]
+futures = "*"
