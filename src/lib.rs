@@ -79,6 +79,7 @@ mod tests {
     fn test() {
         let fixtures = vec![
             (
+                1,
                 ComputationStatus {
                     finished: true,
                     start: 1,
@@ -86,9 +87,9 @@ mod tests {
                     value: 1,
                     n: 0,
                 },
-                1,
             ),
             (
+                9,
                 ComputationStatus {
                     finished: true,
                     start: 9,
@@ -96,9 +97,9 @@ mod tests {
                     value: 1,
                     n: 19,
                 },
-                9,
             ),
             (
+                670617279,
                 ComputationStatus {
                     finished: true,
                     start: 670617279,
@@ -106,11 +107,20 @@ mod tests {
                     value: 1,
                     n: 986,
                 },
-                670617279,
             ),
+            (
+                9780657630,
+                ComputationStatus {
+                    finished: true,
+                    start: 9780657630,
+                    highest: 319497287463520,
+                    value: 1,
+                    n: 1132,
+                },
+            )
         ];
 
-        for (expectation, input) in fixtures {
+        for (input, expectation) in fixtures {
             let result = block_on(Computation::new(input).collect::<Vec<_>>())
                 .last()
                 .cloned()
