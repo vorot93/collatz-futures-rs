@@ -3,7 +3,7 @@
 use core::pin::Pin;
 use futures::{prelude::*, task::*};
 
-fn step(v: u64) -> u64 {
+fn step(v: u128) -> u128 {
     if v % 2 == 0 {
         v / 2
     } else {
@@ -14,10 +14,10 @@ fn step(v: u64) -> u64 {
 #[derive(Clone, Debug, PartialEq)]
 pub struct ComputationStatus {
     finished: bool,
-    start: u64,
-    highest: u64,
-    value: u64,
-    n: u64,
+    start: u128,
+    highest: u128,
+    value: u128,
+    n: u128,
 }
 
 impl ComputationStatus {
@@ -38,7 +38,7 @@ pub struct Computation {
 }
 
 impl Computation {
-    pub fn new(start: u64) -> Self {
+    pub fn new(start: u128) -> Self {
         Self {
             status: ComputationStatus {
                 finished: false,
