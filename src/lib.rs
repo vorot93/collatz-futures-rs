@@ -1,6 +1,7 @@
-extern crate futures;
+#![feature(futures_api)]
 
-use futures::prelude::*;
+use core::pin::Pin;
+use futures::{prelude::*, task::*};
 
 fn step(v: u64) -> u64 {
     if v % 2 == 0 {
@@ -45,66 +46,77 @@ impl Computation {
                 highest: start,
                 value: start,
                 n: 0,
-            }
+            },
         }
     }
 }
 
 impl Stream for Computation {
     type Item = ComputationStatus;
-    type Error = ();
 
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+    fn poll_next(mut self: Pin<&mut Self>, _waker: &Waker) -> Poll<Option<Self::Item>> {
         if self.status.value == 1 && !self.status.finished {
             self.status.finished = true;
-            return Ok(Async::Ready(Some(self.status.clone())));
+            return Poll::Ready(Some(self.status.clone()));
         }
 
         if self.status.value < 1 || self.status.finished {
-            return Ok(Async::Ready(None));
+            return Poll::Ready(None);
         }
 
         self.status = self.status.clone().step();
 
-        Ok(Async::Ready(Some(self.status.clone())))
+        Poll::Ready(Some(self.status.clone()))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use futures::executor::block_on;
 
     #[test]
     fn test() {
-        let fixtures = [
-            (ComputationStatus {
-                finished: true,
-                start: 1,
-                highest: 1,
-                value: 1,
-                n: 0,
-            }, 1),
-            (ComputationStatus {
-                finished: true,
-                start: 9,
-                highest: 52,
-                value: 1,
-                n: 19,
-            }, 9),
-            (ComputationStatus {
-                finished: true,
-                start: 670617279,
-                highest: 966616035460,
-                value: 1,
-                n: 986,
-            }, 670617279),
+        let fixtures = vec![
+            (
+                ComputationStatus {
+                    finished: true,
+                    start: 1,
+                    highest: 1,
+                    value: 1,
+                    n: 0,
+                },
+                1,
+            ),
+            (
+                ComputationStatus {
+                    finished: true,
+                    start: 9,
+                    highest: 52,
+                    value: 1,
+                    n: 19,
+                },
+                9,
+            ),
+            (
+                ComputationStatus {
+                    finished: true,
+                    start: 670617279,
+                    highest: 966616035460,
+                    value: 1,
+                    n: 986,
+                },
+                670617279,
+            ),
         ];
 
-        for &(ref expectation, ref input) in fixtures.into_iter() {
-            let result = Computation::new(*input).wait().last().unwrap().unwrap();
+        for (expectation, input) in fixtures {
+            let result = block_on(Computation::new(input).collect::<Vec<_>>())
+                .last()
+                .cloned()
+                .unwrap();
 
-            assert_eq!(*expectation, result);
+            assert_eq!(expectation, result);
         }
-
     }
 }
